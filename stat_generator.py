@@ -45,12 +45,12 @@ class Renderer:
         return image
 
 
-def generate_stats(username: str, display_name: str, count_messages: int = 0, time_in_voice_seconds: int = 0) -> Image:
+def generate_stats(caller: str, username: str, display_name: str, count_messages: int = 0, time_in_voice_seconds: int = 0) -> Image:
     # Пример использования Renderer:
-    first_line = MatrixComponent(Text(f"{username}@cascade ~$ cat /var/stats/{username}.txt", 0, 0, DEFAULT_TEXT_COLOR))
-    for i in range(len(username)):
+    first_line = MatrixComponent(Text(f"{caller}@cascade ~$ cat /var/stats/{username}.txt", 0, 0, DEFAULT_TEXT_COLOR))
+    for i in range(len(caller)):
         first_line.matrix.matrix[0][i].color = GREEN_TEXT_COLOR
-    for i in range(len(username) + 1, len(username) + 1 + 7):
+    for i in range(len(caller) + 1, len(caller) + 1 + 7):
         first_line.matrix.matrix[0][i].color = GREEN_TEXT_COLOR
 
     stats = '\n'.join([

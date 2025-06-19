@@ -1,3 +1,4 @@
+from typing import Optional
 from dotenv import load_dotenv
 load_dotenv()
 from os import getenv
@@ -37,7 +38,9 @@ tree = app_commands.CommandTree(client)
 @client.event
 async def on_ready():
     print(f'Logged in as {client.user} (ID: {client.user.id})')
-    await tree.sync()
+    for guild in client.guilds:
+        tree.copy_global_to(guild=guild)
+        await tree.sync(guild=guild)
     
 @client.event
 async def on_message(message: discord.Message):
@@ -69,17 +72,23 @@ async def on_voice_state_update(member: discord.Member, before: discord.VoiceSta
     print(voices)
 
 @tree.command(name="stats", description="Получает вашу статистику")
-async def stats(interaction: discord.Interaction):
-    username = interaction.user.name
-    display_name = interaction.user.display_name
-    count_messages = get_message_count(interaction.user.id, interaction.guild.id)
-    time_in_voice = get_voice_session_duration(interaction.user.id, interaction.guild.id)
+@app_commands.describe(
+    user="Пользователь, для которого нужно получить статистику (по умолчанию вы)"
+)
+async def stats_command(interaction: discord.Interaction, user: Optional[discord.Member]):
+    if user is None:
+        user = interaction.user
 
-    image = generate_stats(username, display_name, count_messages, time_in_voice)
+    caller = interaction.user.name
+    username = user.name
+    display_name = user.display_name
+    count_messages = get_message_count(user.id, interaction.guild.id)
+    time_in_voice = get_voice_session_duration(user.id, interaction.guild.id)
+
+    image = generate_stats(caller, username, display_name, count_messages, time_in_voice)
     with NamedTemporaryFile(suffix=".png", delete=False) as temp_file:
         image.save(temp_file.name)
-        await interaction.channel.send(file=discord.File(temp_file.name))
-    await interaction.response.send_message(f"Статистика для {username} отправлена!", ephemeral=True)
+        await interaction.response.send_message(file=discord.File(temp_file.name))
 
 @tree.command(name="top", description="Получает топ пользователей")
 @app_commands.describe(
@@ -107,7 +116,6 @@ async def top(interaction: discord.Interaction, by: TopType):
 
     with NamedTemporaryFile(suffix=".png", delete=False) as temp_file:
         image.save(temp_file.name)
-        await interaction.channel.send(file=discord.File(temp_file.name))
-    await interaction.response.send_message(f"Топ `{by.value}` отправлен!", ephemeral=True)
+        await interaction.response.send_message(file=discord.File(temp_file.name))
 
 client.run(DISCORD_TOKEN)
