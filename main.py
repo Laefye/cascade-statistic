@@ -38,9 +38,7 @@ tree = app_commands.CommandTree(client)
 @client.event
 async def on_ready():
     print(f'Logged in as {client.user} (ID: {client.user.id})')
-    for guild in client.guilds:
-        tree.copy_global_to(guild=guild)
-        await tree.sync(guild=guild)
+    await tree.sync()
     
 @client.event
 async def on_message(message: discord.Message):
